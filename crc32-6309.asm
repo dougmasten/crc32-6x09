@@ -3,7 +3,7 @@
 
 
 ;CRC32_VERSION equ CRC32_FORMULAIC
-;CRC32_VERSION equ CRC32_TABLE_256
+CRC32_VERSION equ CRC32_TABLE_256
 
 ;CRC32_POLY    equ CRC32_IEEE
 ;CRC32_POLY    equ CRC32_C
@@ -29,7 +29,7 @@ CRC32_FORMULAIC equ 0             ; Use formulaic version for space optimization
 CRC32_TABLE_256 equ 1             ; Use lookup-table for speed optimization
 
   IFNDEF CRC32_VERSION
-CRC32_VERSION equ 0       ; default to no lookup table
+CRC32_VERSION equ CRC32_FORMULAIC
   ENDC
 
   IFNDEF CRC32_POLY
@@ -38,6 +38,7 @@ CRC32_POLY equ CRC32_IEEE   ; default to IEEE 802.3
 
 CRC32_POLY_MSW equ (((CRC32_POLY&$FFFF0000)/$10000)&$FFFF)
 CRC32_POLY_LSW equ (CRC32_POLY&$FFFF)
+
 
 ; LWASM assembler options
               opt 6309
@@ -100,7 +101,7 @@ crc32_init
 ; Note: CRC-32's MSW and LSW are switched as an speed optimization. They are
 ;       switched back at the end in the "crc32_finalize" routine.
 
-  IFEQ CRC32_VERSION
+  IFEQ CRC32_VERSION-CRC32_FORMULAIC
 
 ; Formulaic version
 crc32_shift_right MACRO
@@ -119,7 +120,8 @@ crc32_update
               pshs x,y                 ; save registers
               ldx #CRC32_POLY_MSW      ; preload reg X with polynomial
 
-loop@         eorb ,u+                 ; xor CRC-32 with byte from buffer
+loop@
+              eorb ,u+                 ; xor CRC-32 with byte from buffer
               crc32_shift_right        ; shift right by one bit
               crc32_shift_right        ;  "     "    "   "   "
               crc32_shift_right        ;  "     "    "   "   "
@@ -135,7 +137,7 @@ loop@         eorb ,u+                 ; xor CRC-32 with byte from buffer
 
   ENDC
 
-  IFEQ CRC32_VERSION-1
+  IFEQ CRC32_VERSION-CRC32_TABLE_256
 
 ; Table-lookup version
 ; Algorithm: crc = table[(crc & 0xff) ^ k ] ^ (crc >> 8)
@@ -174,7 +176,7 @@ loop@
   ENDC
 
 
-  IFEQ CRC32_VERSION-1
+  IFEQ CRC32_VERSION-CRC32_TABLE_256
 crc32_lookup_table equ *
     IFEQ CRC32_POLY-CRC32_IEEE
       include crc32ieee-table.asm
