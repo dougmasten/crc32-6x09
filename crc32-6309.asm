@@ -8,13 +8,13 @@
 ;CRC32_POLY    equ CRC32_Q
 
 ; Options:
-;   CRC32_USE_TABLE    = 0 Calculate values (No lookup table); slower but takes less RAM (Default)
-;                       = 1 Use lookup table (1024 bytes)
+;   CRC32_USE_TABLE = 0 Calculate values (No lookup table); slower but takes less RAM (Default)
+;                   = 1 Use lookup table (1024 bytes)
 ;
-;   CRC32_POLY          = CRC32IEEE_POLY  ; IEEE (Default)
-;                       = CRC32C_POLY     ; Castagnoli
-;                       = CRC32K_POLY     ; Koopman
-;                       = CRC32Q_POLY     ; Q
+;   CRC32_POLY      = CRC32_IEEE  ; IEEE (Default)
+;                   = CRC32_C     ; Castagnoli
+;                   = CRC32_K     ; Koopman
+;                   = CRC32_Q     ; Q
 
 
 CRC32_IEEE    equ $edb88320       ; IEEE 802.3 (Standard used by Ethernet and zip, gzip, etc.)
