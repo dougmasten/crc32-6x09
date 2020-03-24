@@ -1,15 +1,18 @@
 ; crc32-6309.asm
 ; CRC-32 Library for Hitachi 6309 CPU
 
-;CRC32_USE_TABLE equ 1
+
+;CRC32_VERSION equ CRC32_FORMULAIC
+;CRC32_VERSION equ CRC32_TABLE_256
+
 ;CRC32_POLY    equ CRC32_IEEE
 ;CRC32_POLY    equ CRC32_C
 ;CRC32_POLY    equ CRC32_K
 ;CRC32_POLY    equ CRC32_Q
 
 ; Options:
-;   CRC32_USE_TABLE = 0 Calculate values (No lookup table); slower but takes less RAM (Default)
-;                   = 1 Use lookup table (1024 bytes)
+;   CRC32_VERSION   = CRC32_FORMULAIC  ; Formulaic version (Default)
+;                   = CRC32_TABLE_256  ; Table-Lookup version (1024 bytes)
 ;
 ;   CRC32_POLY      = CRC32_IEEE  ; IEEE (Default)
 ;                   = CRC32_C     ; Castagnoli
@@ -22,8 +25,11 @@ CRC32_C       equ $82f63b78       ; Castagnoli
 CRC32_K       equ $eb31d82e       ; Koopman
 CRC32_Q       equ $d5828281       ; Q
 
-  IFNDEF CRC32_USE_TABLE
-CRC32_USE_TABLE equ 0       ; default to no lookup table
+CRC32_FORMULAIC equ 0             ; Use formulaic version for space optimization
+CRC32_TABLE_256 equ 1             ; Use lookup-table for speed optimization
+
+  IFNDEF CRC32_VERSION
+CRC32_VERSION equ 0       ; default to no lookup table
   ENDC
 
   IFNDEF CRC32_POLY
@@ -94,9 +100,9 @@ crc32_init
 ; Note: CRC-32's MSW and LSW are switched as an speed optimization. They are
 ;       switched back at the end in the "crc32_finalize" routine.
 
-  IFEQ CRC32_USE_TABLE
+  IFEQ CRC32_VERSION
 
-; Non lookup table version (slowest but takes less space)
+; Formulaic version
 crc32_shift_right MACRO
               lsrw                     ; shift to the right for bit #0
               rord                     ;  "    "   "   "
@@ -129,7 +135,7 @@ loop@         eorb ,u+                 ; xor CRC-32 with byte from buffer
 
   ENDC
 
-  IFEQ CRC32_USE_TABLE-1
+  IFEQ CRC32_VERSION-1
 
 ; Table-lookup version
 ; Algorithm: crc = table[(crc & 0xff) ^ k ] ^ (crc >> 8)
@@ -168,7 +174,7 @@ loop@
   ENDC
 
 
-  IFEQ CRC32_USE_TABLE-1
+  IFEQ CRC32_VERSION-1
 crc32_lookup_table equ *
     IFEQ CRC32_POLY-CRC32_IEEE
       include crc32ieee-table.asm
