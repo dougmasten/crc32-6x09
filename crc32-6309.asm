@@ -127,9 +127,9 @@ loop@         eorb ,u+                 ; xor CRC-32 with byte from buffer
 
   IFEQ CRC32_USE_TABLE-1
 
-; Lookup table version
+; Table-lookup version
 ; Algorithm: crc = table[(crc & 0xff) ^ k ] ^ (crc >> 8)
-crc32_update  cmpy #0                  ; test if number of elements is zero
+crc32_update  leay ,y                  ; test if number of elements is zero
               beq ?rts                 ; if yes, then exit
               pshs x,y                 ; save registers
 
