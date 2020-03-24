@@ -11,7 +11,7 @@
 ;CRC32_POLY    equ CRC32_Q
 
 ; Options:
-;   CRC32_VERSION   = CRC32_FORMULAIC  ; Formulaic version (Default)    (133 clock cycles pre byte)
+;   CRC32_VERSION   = CRC32_FORMULAIC  ; Formulaic version (Default)    (133 clock cycles per byte)
 ;                   = CRC32_TABLE_16   ; 16-entry Table-Lookup version  (117 clock cycles per byte)
 ;                   = CRC32_TABLE_256  ; 256-entry Table-Lookup version (50  clock cycles per byte)
 ;
