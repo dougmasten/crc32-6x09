@@ -1,14 +1,14 @@
 ; crc32-6309.asm
 ; CRC-32 Library for Hitachi 6309 CPU
 
-;CRC32_USE_LOOKUP equ 1
+;CRC32_USE_TABLE equ 1
 ;CRC32_POLY    equ CRC32_IEEE
 ;CRC32_POLY    equ CRC32_C
 ;CRC32_POLY    equ CRC32_K
 ;CRC32_POLY    equ CRC32_Q
 
 ; Options:
-;   CRC32_USE_LOOKUP    = 0 Calculate values (No lookup table); slower but takes less RAM (Default)
+;   CRC32_USE_TABLE    = 0 Calculate values (No lookup table); slower but takes less RAM (Default)
 ;                       = 1 Use lookup table (1024 bytes)
 ;
 ;   CRC32_POLY          = CRC32IEEE_POLY  ; IEEE (Default)
@@ -22,8 +22,8 @@ CRC32_C       equ $82f63b78       ; Castagnoli
 CRC32_K       equ $eb31d82e       ; Koopman
 CRC32_Q       equ $d5828281       ; Q
 
-  IFNDEF CRC32_USE_LOOKUP
-CRC32_USE_LOOKUP equ 0      ; default to no lookup table
+  IFNDEF CRC32_USE_TABLE
+CRC32_USE_TABLE equ 0       ; default to no lookup table
   ENDC
 
   IFNDEF CRC32_POLY
@@ -91,7 +91,7 @@ crc32_init    ldq #$ffffffff           ; Initial value
 ; Note: CRC-32's MSW and LSW are switched as an speed optimization. They are
 ;       switched back at the end in the "crc32_finalize" routine.
 
-  IFEQ CRC32_USE_LOOKUP
+  IFEQ CRC32_USE_TABLE
 
 ; Non lookup table version (slowest but takes less space)
 crc32_shift_right MACRO
@@ -125,7 +125,7 @@ loop@         eorb ,u+                 ; xor CRC-32 with byte from buffer
 
   ENDC
 
-  IFEQ CRC32_USE_LOOKUP-1
+  IFEQ CRC32_USE_TABLE-1
 
 ; Lookup table version
 ; Algorithm: crc = table[(crc & 0xff) ^ k ] ^ (crc >> 8)
@@ -163,7 +163,7 @@ loop@
   ENDC
 
 
-  IFEQ CRC32_USE_LOOKUP-1
+  IFEQ CRC32_USE_TABLE-1
 crc32_lookup_table equ *
     IFEQ CRC32_POLY-CRC32_IEEE
       include crc32ieee-table.asm
