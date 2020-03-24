@@ -47,7 +47,8 @@ CRC32_POLY_LSW equ (CRC32_POLY&$FFFF)
 ; Calls       : crc32_init, crc32_update and crc32_finalize
 ; Description : Computes the finale CRC-32 checksum for the source data buffer
 ;------------------------------------------------------------------------------
-crc32         bsr crc32_init           ; Initialize CRC-32 starting value
+crc32
+              bsr crc32_init           ; Initialize CRC-32 starting value
               bsr crc32_update         ; Calculate CRC-32 value
               ;bra crc32_finalize      ; Finalize CRC-32 value and return
 
@@ -60,7 +61,8 @@ crc32         bsr crc32_init           ; Initialize CRC-32 starting value
 ; Calls       : none
 ; Description : Finalize CRC-32 value
 ;------------------------------------------------------------------------------
-crc32_finalize eord #$ffff              ; xor LSW
+crc32_finalize
+               eord #$ffff              ; xor LSW
                exg d,w                  ; exchange MSW and LSW back
                eord #$ffff              ; xor MSW
                rts                      ; return
@@ -74,7 +76,8 @@ crc32_finalize eord #$ffff              ; xor LSW
 ; Calls       : none
 ; Description : Initialize CRC-32 checksum "seed" value
 ;------------------------------------------------------------------------------
-crc32_init    ldq #$ffffffff           ; Initial value
+crc32_init
+              ldq #$ffffffff           ; Initial value
               rts
 
 
