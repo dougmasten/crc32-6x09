@@ -155,9 +155,6 @@ crc32_update
               pshs x,y                 ; save registers
 
 loop@
-; TODO! remove opt
-  opt c,ct,cc
-;
               stb a@                   ; save Reg B (SMC)
               eorb ,u
               andb #$0f
