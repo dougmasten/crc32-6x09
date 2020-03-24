@@ -106,7 +106,8 @@ crc32_shift_right MACRO
 a@            equ *                    ;
               ENDM
 
-crc32_update  cmpy #0                  ; test if number of elements is zero
+crc32_update
+              leay ,y                  ; test if number of elements is zero
               beq ?rts                 ; if yes, then exit
 
               pshs x,y                 ; save registers
@@ -132,7 +133,8 @@ loop@         eorb ,u+                 ; xor CRC-32 with byte from buffer
 
 ; Table-lookup version
 ; Algorithm: crc = table[(crc & 0xff) ^ k ] ^ (crc >> 8)
-crc32_update  leay ,y                  ; test if number of elements is zero
+crc32_update
+              leay ,y                  ; test if number of elements is zero
               beq ?rts                 ; if yes, then exit
               pshs x,y                 ; save registers
 
