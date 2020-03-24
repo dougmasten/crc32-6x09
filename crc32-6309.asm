@@ -294,6 +294,6 @@ crc32_lookup_table equ *
     ENDC
 
     IFEQ crc32_lookup_table-*
-      ERROR "CRC-32 include tables does not support CRC32_POLY value"
+      ERROR "CRC32_POLY value is not support"
     ENDC
   ENDC
