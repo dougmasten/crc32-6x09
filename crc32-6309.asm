@@ -231,8 +231,10 @@ b@            equ *-1                  ; ** Self-Modified Code **
 ;
               puls x,y,pc              ; restore registers and exit
 
-    IFEQ CRC32_POLY-CRC32_IEEE
+
 crc32_lookup_table
+
+    IFEQ CRC32_POLY-CRC32_IEEE
               fqb $00000000,$1db71064,$3b6e20c8,$26d930ac
               fqb $76dc4190,$6b6b51f4,$4db26158,$5005713c
               fqb $edb88320,$f00f9344,$d6d6a3e8,$cb61b38c
@@ -309,8 +311,9 @@ b@            equ *-1                  ; ** Self-Modified Code **
               puls x,y,pc              ; restore registers and exit
 
 
-    IFEQ CRC32_POLY-CRC32_IEEE
 crc32_lookup_table
+
+    IFEQ CRC32_POLY-CRC32_IEEE
 ; 1st table
               fqb $00000000,$77073096,$ee0e612c,$990951ba
               fqb $076dc419,$706af48f,$e963a535,$9e6495a3
@@ -367,7 +370,9 @@ loop@
 ;
               puls x,y,pc              ; restore registers and exit
 
-crc32_lookup_table equ *
+
+crc32_lookup_table
+
     IFEQ CRC32_POLY-CRC32_IEEE
       include crc32ieee-table.asm
     ENDC
