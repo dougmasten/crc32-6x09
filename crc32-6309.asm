@@ -71,10 +71,10 @@ crc32
 ; Description : Finalize CRC-32 value
 ;------------------------------------------------------------------------------
 crc32_finalize
-               eord #$ffff              ; xor LSW
-               exg d,w                  ; exchange MSW and LSW back
-               eord #$ffff              ; xor MSW
-               rts                      ; return
+              eord #$ffff              ; xor LSW
+              exg d,w                  ; exchange MSW and LSW back
+              eord #$ffff              ; xor MSW
+              rts                      ; return
 
 
 ;------------------------------------------------------------------------------
@@ -107,11 +107,11 @@ crc32_init
 
 ; Formulaic version
 crc32_shift_right MACRO
-              lsrw                     ; shift to the right for bit #0
-              rord                     ;  "    "   "   "
-              bcc a@                   ; branch if no 1's fell off
-              eorr x,w                 ; xor polynomial
-              eord #CRC32_POLY_LSW     ;  "   "
+              lsrw                     ; shift to the right for bit #0        (2 cycles)
+              rord                     ;  "    "   "   "                      (2 cycles)
+              bcc a@                   ; branch if no 1's fell off            (3 cycles)
+              eorr x,w                 ; xor polynomial                       (4 cycles)
+              eord #CRC32_POLY_LSW     ;  "   "                               (4 cycles)
 a@            equ *                    ;
               ENDM
 
@@ -123,17 +123,19 @@ crc32_update
               ldx #CRC32_POLY_MSW      ; preload reg X with polynomial
 
 loop@
-              eorb ,u+                 ; xor CRC-32 with byte from buffer
-              crc32_shift_right        ; shift right by one bit
-              crc32_shift_right        ;  "     "    "   "   "
-              crc32_shift_right        ;  "     "    "   "   "
-              crc32_shift_right        ;  "     "    "   "   "
-              crc32_shift_right        ;  "     "    "   "   "
-              crc32_shift_right        ;  "     "    "   "   "
-              crc32_shift_right        ;  "     "    "   "   "
-              crc32_shift_right        ;  "     "    "   "   "
-              leay -1,y                ; decrement buffer counter
-              bne loop@                ; (Loop takes 133 clock cycles)
+              eorb ,u+                 ; xor CRC-32 with byte from buffer     (5 cycles)
+              crc32_shift_right        ; shift right by one bit               (15 cycles)
+              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
+              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
+              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
+              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
+              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
+              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
+              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
+              leay -1,y                ; decrement buffer counter             (5 cycles)
+              bne loop@                ; loop until done                      (3 cycles)
+                                       ;                                      -----------
+                                       ;                                TOTAL (133 cycles)
 
               puls x,y,pc              ; restore registers and exit
 
@@ -159,9 +161,9 @@ loop@
               eorb ,u
               andb #$0f
               ldx #crc32_lookup_table
-              lslb
-              lslb
-              abx
+              lslb                     ; index x4
+              lslb                     ;  "    "
+              abx                      ;  "    "
               ldb #0                   ; restore reg B (SMC)
 a@            equ *-1                  ; ** Self-Modified Code **
 ;
@@ -189,9 +191,9 @@ a@            equ *-1                  ; ** Self-Modified Code **
               eorb b@
               andb #$0f
               ldx #crc32_lookup_table
-              lslb
-              lslb
-              abx
+              lslb                     ; index x4
+              lslb                     ;  "    "
+              abx                      ;  "    "
               ldb #0                   ; restore Reg B (SMC)
 b@            equ *-1                  ; ** Self-Modified Code **
 ;
@@ -235,7 +237,7 @@ crc32_lookup_table
 ;------------------------------------------------------------------------------
   IFEQ CRC32_VERSION-CRC32_TABLE_256
 
-; Table-lookup version
+; Table-lookup 256-entry version
 ; Algorithm: crc = table[(crc & 0xff) ^ k ] ^ (crc >> 8)
 crc32_update
               leay ,y                  ; test if number of elements is zero
@@ -266,13 +268,9 @@ loop@
               bne loop@                ;                                      (3 cycles)
                                        ;                                      -----------
                                        ;                               TOTAL  (50 cycles)
-
+;
               puls x,y,pc              ; restore registers and exit
 
-  ENDC
-
-
-  IFEQ CRC32_VERSION-CRC32_TABLE_256
 crc32_lookup_table equ *
     IFEQ CRC32_POLY-CRC32_IEEE
       include crc32ieee-table.asm
@@ -293,4 +291,5 @@ crc32_lookup_table equ *
     IFEQ crc32_lookup_table-*
       ERROR "CRC32_POLY value is not support"
     ENDC
+
   ENDC
