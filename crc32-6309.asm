@@ -259,7 +259,6 @@ crc32_update
               beq ?rts                 ; if yes, then exit
               pshs x,y                 ; save registers
 
- opt 6309,c,ct,cc
 loop@
 ;
 ; n = crc ^ data
