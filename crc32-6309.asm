@@ -32,7 +32,7 @@
 ;   CRC32_TABLE_256   256-entry Table   1082 bytes   50
 
 
-CRC32_IEEE    equ $edb88320       ; IEEE 802.3 (Standard used by Ethernet and zip, gzip, etc.)
+CRC32_IEEE    equ $edb88320       ; IEEE 802.3
 CRC32_C       equ $82f63b78       ; Castagnoli
 CRC32_K       equ $eb31d82e       ; Koopman
 CRC32_Q       equ $d5828281       ; Q
