@@ -10,16 +10,38 @@ POLYNOMS = {
 }
 
 
-def build_table(poly):
+def build_table_32(poly):
+    table = []
+    for i in range(16):
+        crc = i
+        for j in range(8):
+            if crc & 1:
+                crc = (crc >> 1) ^ poly
+            else:
+                crc >>= 1
+        table.append(crc)
+
+    for i in range(16):
+        crc = i << 4
+        for j in range(8):
+            if crc & 1:
+                crc = (crc >> 1) ^ poly
+            else:
+                crc >>= 1
+        table.append(crc)
+    return table
+
+
+def build_table_256(poly):
     table = []
     for i in range(256):
-        k = i
+        crc = i
         for j in range(8):
-            if k & 1:
-                k = (k >> 1) ^ poly
+            if crc & 1:
+                crc = (crc >> 1) ^ poly
             else:
-                k >>= 1
-        table.append(k)
+                crc >>= 1
+        table.append(crc)
     return table
 
 
@@ -36,9 +58,10 @@ def output_table(filename, table, poly):
                      table[i + 4], table[i + 5], table[i + 6], table[i + 7]))
 
 
+
 for k in POLYNOMS:
     filename = k + '-table.asm'
     poly = POLYNOMS[k]
-    table = build_table(poly)
+    table = build_table_256(poly)
     output_table(filename, table, poly)
     print('File created - %s' % filename)
