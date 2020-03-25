@@ -309,7 +309,6 @@ b@            equ *-1                  ; ** Self-Modified Code **
               puls x,y,pc              ; restore registers and exit
 
 
- eorr v,w
     IFEQ CRC32_POLY-CRC32_IEEE
 crc32_lookup_table
 ; 1st table
