@@ -58,7 +58,6 @@ def output_table(filename, table, poly):
                      table[i + 4], table[i + 5], table[i + 6], table[i + 7]))
 
 
-
 for k in POLYNOMS:
     filename = k + '-table.asm'
     poly = POLYNOMS[k]
