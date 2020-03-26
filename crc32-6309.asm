@@ -60,7 +60,7 @@ CRC32_POLY_LSW equ (CRC32_POLY&$FFFF)
 
 
 ;------------------------------------------------------------------------------
-; Function    : crc32
+; Function    : crc32_6309
 ; Input       : Reg U = Pointer to the source data buffer
 ;             : Reg Y = Number of elements in the source data buffer
 ; Output      : Reg Q = Returns CRC32 checksum value
@@ -68,21 +68,21 @@ CRC32_POLY_LSW equ (CRC32_POLY&$FFFF)
 ; Calls       : crc32_init, crc32_update and crc32_finalize
 ; Description : Computes the finale CRC-32 checksum for the source data buffer
 ;------------------------------------------------------------------------------
-crc32
-              bsr crc32_init           ; Initialize CRC-32 starting value
-              bsr crc32_update         ; Calculate CRC-32 value
+crc32_6309
+              bsr crc32_6309_init      ; Initialize CRC-32 starting value
+              bsr crc32_6309_update    ; Calculate CRC-32 value
               ;bra crc32_finalize      ; Finalize CRC-32 value and return
 
 
 ;------------------------------------------------------------------------------
-; Function    : crc32_finalize
+; Function    : crc32_6309_finalize
 ; Input       : Reg Q = CRC-32 checksum value
 ; Output      : Reg Q = Finale CRC-32 checksum value
 ; Destroys    : none
 ; Calls       : none
 ; Description : Finalize CRC-32 value
 ;------------------------------------------------------------------------------
-crc32_finalize
+crc32_6309_finalize
               eord #$ffff              ; xor LSW
               exg d,w                  ; exchange MSW and LSW back
               eord #$ffff              ; xor MSW
@@ -90,20 +90,20 @@ crc32_finalize
 
 
 ;------------------------------------------------------------------------------
-; Function    : crc32_init
+; Function    : crc32_6309_init
 ; Input       : none
 ; Output      : Reg Q = Initial CRC-32 checksum value
 ; Destroys    : none
 ; Calls       : none
 ; Description : Initialize CRC-32 checksum "seed" value
 ;------------------------------------------------------------------------------
-crc32_init
+crc32_6309_init
               ldq #$ffffffff           ; Initial value
               rts
 
 
 ;------------------------------------------------------------------------------
-; Function    : crc32_update
+; Function    : crc32_6309_update
 ; Input       : Req Q = Current CRC-32 value
 ;             : Reg U = Pointer to the source data buffer
 ;             : Reg Y = Number of elements in the source data buffer
@@ -118,7 +118,7 @@ crc32_init
   IFEQ CRC32_VERSION-CRC32_FORMULAIC
 
 ; Formulaic version
-crc32_shift_right MACRO
+crc32_6309_shift_right MACRO
               lsrw                     ; shift to the right for bit #0        (2 cycles)
               rord                     ;  "    "   "   "                      (2 cycles)
               bcc a@                   ; branch if no 1's fell off            (3 cycles)
@@ -127,7 +127,7 @@ crc32_shift_right MACRO
 a@            equ *                    ;
               ENDM
 
-crc32_update
+crc32_6309_update
               leay ,y                  ; test if number of elements is zero
               beq ?rts                 ; if yes, then exit
 
@@ -136,14 +136,14 @@ crc32_update
 
 loop@
               eorb ,u+                 ; xor CRC-32 with byte from buffer     (5 cycles)
-              crc32_shift_right        ; shift right by one bit               (15 cycles)
-              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
-              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
-              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
-              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
-              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
-              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
-              crc32_shift_right        ;  "     "    "   "   "                (15 cycles)
+              crc32_6309_shift_right   ; shift right by one bit               (15 cycles)
+              crc32_6309_shift_right   ;  "     "    "   "   "                (15 cycles)
+              crc32_6309_shift_right   ;  "     "    "   "   "                (15 cycles)
+              crc32_6309_shift_right   ;  "     "    "   "   "                (15 cycles)
+              crc32_6309_shift_right   ;  "     "    "   "   "                (15 cycles)
+              crc32_6309_shift_right   ;  "     "    "   "   "                (15 cycles)
+              crc32_6309_shift_right   ;  "     "    "   "   "                (15 cycles)
+              crc32_6309_shift_right   ;  "     "    "   "   "                (15 cycles)
               leay -1,y                ; decrement buffer counter             (5 cycles)
               bne loop@                ; loop until done                      (3 cycles)
                                        ;                                      -----------
@@ -163,7 +163,7 @@ loop@
 ;     crc = table[i] ^ (crc >> 4)
 ;     i = (crc ^ (data >> 4)) & $0f
 ;     crc = table[i] ^ (crc >> 4)
-crc32_update
+crc32_6309_update
               leay ,y                  ; test if number of elements is zero
               beq ?rts                 ; if yes, then exit
               pshs x,y                 ; save registers
@@ -256,7 +256,7 @@ crc32_lookup_table
 ;     n = crc ^ data
 ;     crc = table[n & $0f] ^ table[16 + ((n >> 4) & $0f)] ^ (crc >> 8)
 ;     https://lentz.com.au/blog/calculating-crc-with-a-tiny-32-entry-lookup-table
-crc32_update
+crc32_6309_update
               leay ,y                  ; test if number of elements is zero
               beq ?rts                 ; if yes, then exit
               pshs x,y                 ; save registers
@@ -338,7 +338,7 @@ crc32_lookup_table
 
 ; Table-lookup 256-entry version
 ; Algorithm: crc = table[(crc & 0xff) ^ k ] ^ (crc >> 8)
-crc32_update
+crc32_6309_update
               leay ,y                  ; test if number of elements is zero
               beq ?rts                 ; if yes, then exit
               pshs x,y                 ; save registers
