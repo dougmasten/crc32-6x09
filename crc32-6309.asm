@@ -13,10 +13,11 @@
 ;CRC32_POLY    equ CRC32_Q
 
 ; Options:
-;   CRC32_VERSION   = CRC32_FORMULAIC  ; Slowest and smallest size (Default)
-;                   = CRC32_TABLE_16   ;
-;                   = CRC32_TABLE_32   ;
-;                   = CRC32_TABLE_256  ; Fastest and biggest size
+;   CRC32_VERSION   = CRC32_FORMULAIC           ; Slowest and smallest size (Default)
+;                   = CRC32_FORMULAIC_UNROLLED  ;
+;                   = CRC32_TABLE_16            ;
+;                   = CRC32_TABLE_32            ;
+;                   = CRC32_TABLE_256           ; Fastest and biggest size
 ;
 ;   CRC32_POLY      = CRC32_IEEE       ; IEEE (Default)
 ;                   = CRC32_C          ; Castagnoli
@@ -24,12 +25,13 @@
 ;                   = CRC32_Q          ; Q
 
 ; Stats:
-;   Version           Type              Code Len     Clock cycles (per byte)
-;   ---------------   ---------------   ----------   -----------------------
-;   CRC32_FORMULAIC   Formula           142 bytes    133
-;   CRC32_TABLE_16    16-entry Table    182 bytes    117
-;   CRC32_TABLE_32    32-entry Table    213 bytes    87
-;   CRC32_TABLE_256   256-entry Table   1082 bytes   50
+;   Version                    Type              Code Len     Clock cycles (per byte)
+;   ------------------------   ---------------   ----------   -----------------------
+;   CRC32_FORMULAIC            Formula           61 bytes     200
+;   CRC32_FORMULAIC_UNROLLED   Formula           142 bytes    133
+;   CRC32_TABLE_16             16-entry Table    182 bytes    117
+;   CRC32_TABLE_32             32-entry Table    213 bytes    87
+;   CRC32_TABLE_256            256-entry Table   1082 bytes   50
 
 
 CRC32_IEEE    equ $edb88320       ; IEEE 802.3
@@ -38,9 +40,10 @@ CRC32_K       equ $eb31d82e       ; Koopman
 CRC32_Q       equ $d5828281       ; Q
 
 CRC32_FORMULAIC equ 0             ; Formulaic version (Space optimization)
-CRC32_TABLE_16  equ 1             ; 16-entry lookup-table
-CRC32_TABLE_32  equ 2             ; 32-entry lookup-table
-CRC32_TABLE_256 equ 3             ; 256-entry lookup-table (Speed optimization)
+CRC32_FORMULAIC_UNROLLED equ 1    ; Unrolled Formulaic version
+CRC32_TABLE_16  equ 2             ; 16-entry lookup-table
+CRC32_TABLE_32  equ 3             ; 32-entry lookup-table
+CRC32_TABLE_256 equ 4             ; 256-entry lookup-table (Speed optimization)
 
   IFNDEF CRC32_VERSION
 CRC32_VERSION equ CRC32_FORMULAIC
@@ -71,7 +74,7 @@ CRC32_POLY_LSW equ (CRC32_POLY&$FFFF)
 crc32_6309
               bsr crc32_6309_init      ; Initialize CRC-32 starting value
               bsr crc32_6309_update    ; Calculate CRC-32 value
-              ;bra crc32_finalize      ; Finalize CRC-32 value and return
+              ;bra crc32_6309_finalize ; Finalize CRC-32 value and return
 
 
 ;------------------------------------------------------------------------------
@@ -169,14 +172,14 @@ crc32_6309_update
               pshs x,y                 ; save registers
 
 loop@
-              stb a@                   ; save Reg B (SMC)
-              eorb ,u
-              andb #$0f
-              ldx #crc32_lookup_table
-              lslb                     ; index x4
-              lslb                     ;  "    "
-              abx                      ;  "    "
-              ldb #0                   ; restore reg B (SMC)
+              stb a@                   ; save Reg B (SMC)              ()
+              eorb ,u                  ;                               ()
+              andb #$0f                ;                               (2 cycles)
+              ldx #crc32_lookup_table  ;                               (3 cycles)
+              lslb                     ; index x4                      (1 cycle)
+              lslb                     ;  "    "                       (1 cycle)
+              abx                      ;  "    "                       (1 cycle)
+              ldb #0                   ; restore reg B (SMC)           (2 cycles)
 a@            equ *-1                  ; ** Self-Modified Code **
 ;
 ; (crc >> 4)
@@ -190,23 +193,23 @@ a@            equ *-1                  ; ** Self-Modified Code **
               rord                     ;  "     "   "     "    "       (2 cycles)
 ;
 ; crc = table[i] ^ (crc >> 4)
-              eord 2,x
-              ldx ,x
-              eorr x,w
+              eord 2,x                 ;                               (7 cycles)
+              ldx ,x                   ;                               (5 cycles)
+              eorr x,w                 ;                               (4 cycles)
 ;
               stb b@                   ; save Reg B (SMC)
-              ldb ,u+
-              lsrb
-              lsrb
-              lsrb
-              lsrb
-              eorb b@
-              andb #$0f
-              ldx #crc32_lookup_table
-              lslb                     ; index x4
-              lslb                     ;  "    "
-              abx                      ;  "    "
-              ldb #0                   ; restore Reg B (SMC)
+              ldb ,u+                  ;
+              lsrb                     ;                               (1 cycle)
+              lsrb                     ;                               (1 cycle)
+              lsrb                     ;                               (1 cycle)
+              lsrb                     ;                               (1 cycle)
+              eorb b@                  ;                               ()
+              andb #$0f                ;                               (2 cycles)
+              ldx #crc32_lookup_table  ;                               (3 cycles)
+              lslb                     ; index x4                      (1 cycle)
+              lslb                     ;  "    "                       (1 cycle)
+              abx                      ;  "    "                       (1 cycle)
+              ldb #0                   ; restore Reg B (SMC)           (2 cycles
 b@            equ *-1                  ; ** Self-Modified Code **
 ;
 ; (crc >> 4)
@@ -220,14 +223,14 @@ b@            equ *-1                  ; ** Self-Modified Code **
               rord                     ;  "     "   "     "    "       (2 cycles)
 ;
 ; crc = table[i] ^ (crc >> 4)
-              eord 2,x                 ;                                (7 cycles)
-              ldx ,x                   ;                                (5 cycles)
-              eorr x,w                 ;                                (4 cycles)
+              eord 2,x                 ;                               (7 cycles)
+              ldx ,x                   ;                               (5 cycles)
+              eorr x,w                 ;                               (4 cycles)
 ;
-              leay -1,y                ;                                (5 cycles)
-              bne loop@                ;                                (3 cycles)
-                                       ;                                ------------
-                                       ;                         TOTAL  (117 cycles)
+              leay -1,y                ;                               (5 cycles)
+              bne loop@                ;                               (3 cycles)
+                                       ;                               ------------
+                                       ;                        TOTAL  (117 cycles)
 ;
               puls x,y,pc              ; restore registers and exit
 
@@ -242,7 +245,7 @@ crc32_lookup_table
     ENDC
 
     IFEQ crc32_lookup_table-*
-      ERROR "CRC32_POLY value is not support"
+      ERROR "CRC32_POLY value not support"
     ENDC
 
   ENDC
@@ -253,8 +256,8 @@ crc32_lookup_table
 
 ; Table-Lookup 32-entry (2 x 16-entry) version
 ; Algorithm:
-;     n = crc ^ data
-;     crc = table[n & $0f] ^ table[16 + ((n >> 4) & $0f)] ^ (crc >> 8)
+;     i = crc ^ data
+;     crc = table[i & $0f] ^ table[16 + ((i >> 4) & $0f)] ^ (crc >> 8)
 ;     https://lentz.com.au/blog/calculating-crc-with-a-tiny-32-entry-lookup-table
 crc32_6309_update
               leay ,y                  ; test if number of elements is zero
@@ -263,12 +266,12 @@ crc32_6309_update
 
 loop@
 ;
-; n = crc ^ data
+; i = crc ^ data
               eorb ,u+                 ; n = crc ^ data                       (5 cycles)
               stb a@                   ; save n                               (4 cycles)
 ;
-; table[n & $0f]
-              ldx #crc32_lookup_table  ; point to table                       (3 cycles)
+; table[i & $0f]
+              ldx #crc32_lookup_table  ; point to first table                 (3 cycles)
               andb #$0f                ; mask lower nibble                    (2 cycles)
               lslb                     ; index x4                             (1 cycle)
               lslb                     ;  "    "                              (1 cycle)
@@ -280,14 +283,14 @@ loop@
               tfr e,f                  ;  "     "     "    "  "  "            (4 cycles)
               clre                     ;  "     "     "    "  "  "            (2 cycles)
 ;
-; crc = crc ^ table[n & $0f]
+; crc = crc ^ table[i & $0f]
               eord 2,x                 ; xor CRC32 with lookup table          (7 cycles)
               ldx ,x                   ;  "   "     "     "     "             (5 cycles)
               eorr x,w                 ;  "   "     "     "     "             (4 cycles)
               stb b@                   ; save crc                             (4 cycles)
 ;
-; table[16 + ((n >> 4) & $0f)]
-              ldx #crc32_lookup_table+(16*4)  ;                               (3 cycles)
+; table[16 + ((i >> 4) & $0f)]
+              ldx #crc32_lookup_table+(16*4)  ; point to second table         (3 cycles)
               ldb #0                   ; retrieve n                           (2 cycles)
 a@            equ *-1                  ; ** Self-Modified Code **
               andb #$f0                ; mask upper nibble                    (2 cycles)
@@ -297,7 +300,7 @@ a@            equ *-1                  ; ** Self-Modified Code **
               ldb #0                   ;                                      (2 cycles)
 b@            equ *-1                  ; ** Self-Modified Code **
 ;
-; crc = crc ^ table[16 + ((n >> 4) & $0f)]
+; crc = crc ^ table[16 + ((i >> 4) & $0f)]
               eord 2,x                 ; xor CRC32 with lookup table          (7 cycles)
               ldx ,x                   ;  "   "     "     "     "             (5 cycles)
               eorr x,w                 ;  "   "     "     "     "             (4 cycles)
@@ -327,7 +330,7 @@ crc32_lookup_table
     ENDC
 
     IFEQ crc32_lookup_table-*
-      ERROR "CRC32_POLY value is not support"
+      ERROR "CRC32_POLY value not support"
     ENDC
 
   ENDC
@@ -363,8 +366,8 @@ loop@
               ldx ,x                   ;  "   "     "     "     "             (5 cycles)
               eorr x,w                 ;  "   "     "     "     "             (4 cycles)
 ;
-              leay -1,y                ;                                      (5 cycles)
-              bne loop@                ;                                      (3 cycles)
+              leay -1,y                ; decrement counter                    (5 cycles)
+              bne loop@                ; loop until done                      (3 cycles)
                                        ;                                      -----------
                                        ;                               TOTAL  (50 cycles)
 ;
