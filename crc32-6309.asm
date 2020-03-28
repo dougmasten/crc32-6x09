@@ -111,16 +111,55 @@ crc32_6309_init
 ;             : Reg U = Pointer to the source data buffer
 ;             : Reg Y = Number of elements in the source data buffer
 ; Output      : Reg Q = Updated CRC-32 value
-; Destroys    : none
+; Destroys    : Reg V
 ; Calls       : none
 ; Description : Update CRC32 checksum with data buffer's CRC32 checksum
 ;------------------------------------------------------------------------------
 ; Note: CRC-32's MSW and LSW are switched as an speed optimization. They are
 ;       switched back at the end in the "crc32_finalize" routine.
 
+
+
   IFEQ CRC32_VERSION-CRC32_FORMULAIC
 
 ; Formulaic version
+
+crc32_6309_update
+              leay ,y                  ; test if number of elements is zero
+              beq ?rts                 ; if yes, then exit
+
+              pshs x,y                 ; save registers
+              ldx #CRC32_POLY_MSW      ; preload reg X with polynomial
+              tfr x,v                  ; and transfer to register V for later use
+
+loop_a@
+              eorb ,u+                 ; xor CRC-32 with byte from buffer     (5 cycles)
+              ldx #8                   ; Initialize loop counter              (3 cycles)
+;
+loop_b@
+              lsrw                     ; shift to the right for bit #0        (2 cycles)
+              rord                     ;  "    "   "   "                      (2 cycles)
+              bcc a@                   ; branch if no 1's fell off            (3 cycles)
+              eorr v,w                 ; xor polynomial                       (4 cycles)
+              eord #CRC32_POLY_LSW     ;  "   "                               (4 cycles)
+a@
+              leax -1,x                ;                                      (5 cycles)
+              bne loop_b@              ;                                      (3 cycles)
+;
+              leay -1,y                ; decrement buffer counter             (5 cycles)
+              bne loop_a@              ; loop until done                      (3 cycles)
+                                       ;                                      -----------
+                                       ;                                TOTAL (200 cycles)
+
+              puls x,y,pc              ; restore registers and exit
+
+  ENDC
+
+
+;------------------------------------------------------------------------------
+  IFEQ CRC32_VERSION-CRC32_FORMULAIC_UNROLLED
+
+; Unrolled Formulaic version
 crc32_6309_shift_right MACRO
               lsrw                     ; shift to the right for bit #0        (2 cycles)
               rord                     ;  "    "   "   "                      (2 cycles)
