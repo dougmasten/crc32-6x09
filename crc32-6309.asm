@@ -374,23 +374,25 @@ loop@
 crc32_lookup_table
 
     IFEQ CRC32_POLY-CRC32_IEEE
-      include crc32ieee-table.asm
+      include tables/crc32ieee-table.asm
     ENDC
 
     IFEQ CRC32_POLY-CRC32_C
-      include crc32c-table.asm
+      include tables/crc32c-table.asm
     ENDC
 
     IFEQ CRC32_POLY-CRC32_K
-      include crc32k-table.asm
+      include tables/crc32k-table.asm
     ENDC
 
     IFEQ CRC32_POLY-CRC32_Q
-      include crc32q-table.asm
+      include tables/crc32q-table.asm
     ENDC
 
     IFEQ crc32_lookup_table-*
-      ERROR "CRC32_POLY value is not support"
+      ERROR "CRC32_POLY value not support"
     ENDC
 
   ENDC
+
+CRC32_6309_CODE_LEN equ *-crc32_6309
