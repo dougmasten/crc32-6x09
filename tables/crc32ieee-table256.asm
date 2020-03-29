@@ -1,4 +1,4 @@
-; crc32ieee-table.asm
+; crc32ieee-table256.asm
 ; Polynomial - $edb88320
 
   fqb $00000000,$77073096,$ee0e612c,$990951ba,$076dc419,$706af48f,$e963a535,$9e6495a3

@@ -1,4 +1,4 @@
-; crc32k-table.asm
+; crc32k-table256.asm
 ; Polynomial - $eb31d82e
 
   fqb $00000000,$9695c4ca,$fb4839c9,$6dddfd03,$20f3c3cf,$b6660705,$dbbbfa06,$4d2e3ecc
