@@ -117,17 +117,14 @@ crc32_6309_init
 ;------------------------------------------------------------------------------
 ; Note: CRC-32's MSW and LSW are switched as an speed optimization. They are
 ;       switched back at the end in the "crc32_finalize" routine.
-
+crc32_6309_update
+              leay ,y                  ; test if number of elements is zero
+              beq ?rts                 ; if yes, then exit
 
 
   IFEQ CRC32_VERSION-CRC32_FORMULAIC
 
 ; Formulaic version
-
-crc32_6309_update
-              leay ,y                  ; test if number of elements is zero
-              beq ?rts                 ; if yes, then exit
-
               pshs x,y                 ; save registers
               ldx #CRC32_POLY_MSW      ; preload reg X with polynomial
               tfr x,v                  ; and transfer to register V for later use
@@ -169,9 +166,6 @@ crc32_6309_shift_right MACRO
 a@            equ *                    ;
               ENDM
 
-crc32_6309_update
-              leay ,y                  ; test if number of elements is zero
-              beq ?rts                 ; if yes, then exit
 
               pshs x,y                 ; save registers
               ldx #CRC32_POLY_MSW      ; preload reg X with polynomial
@@ -205,9 +199,6 @@ loop@
 ;     crc = table[i] ^ (crc >> 4)
 ;     i = (crc ^ (data >> 4)) & $0f
 ;     crc = table[i] ^ (crc >> 4)
-crc32_6309_update
-              leay ,y                  ; test if number of elements is zero
-              beq ?rts                 ; if yes, then exit
               pshs x,y                 ; save registers
 
 loop@
@@ -284,9 +275,6 @@ b@            equ *-1                  ; ** Self-Modified Code **
 ;     i = crc ^ data
 ;     crc = table[i & $0f] ^ table[16 + ((i >> 4) & $0f)] ^ (crc >> 8)
 ;     https://lentz.com.au/blog/calculating-crc-with-a-tiny-32-entry-lookup-table
-crc32_6309_update
-              leay ,y                  ; test if number of elements is zero
-              beq ?rts                 ; if yes, then exit
               pshs x,y                 ; save registers
 
 loop@
@@ -346,9 +334,6 @@ b@            equ *-1                  ; ** Self-Modified Code **
 
 ; Table-lookup 256-entry version
 ; Algorithm: crc = table[(crc & 0xff) ^ k ] ^ (crc >> 8)
-crc32_6309_update
-              leay ,y                  ; test if number of elements is zero
-              beq ?rts                 ; if yes, then exit
               pshs x,y                 ; save registers
 
 loop@
