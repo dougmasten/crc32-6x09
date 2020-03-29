@@ -1,29 +1,6 @@
 ; crc32-6309.asm
 ; CRC-32 Library for Hitachi 6309 CPU
 
-
-;CRC32_VERSION equ CRC32_FORMULAIC
-;CRC32_VERSION equ CRC32_TABLE_16
-;CRC32_VERSION equ CRC32_TABLE_32
-;CRC32_VERSION equ CRC32_TABLE_256
-
-;CRC32_POLY    equ CRC32_IEEE
-;CRC32_POLY    equ CRC32_C
-;CRC32_POLY    equ CRC32_K
-;CRC32_POLY    equ CRC32_Q
-
-; Options:
-;   CRC32_VERSION   = CRC32_FORMULAIC           ; Slowest and smallest size (Default)
-;                   = CRC32_FORMULAIC_UNROLLED  ;
-;                   = CRC32_TABLE_16            ;
-;                   = CRC32_TABLE_32            ;
-;                   = CRC32_TABLE_256           ; Fastest and biggest size
-;
-;   CRC32_POLY      = CRC32_IEEE       ; IEEE (Default)
-;                   = CRC32_C          ; Castagnoli
-;                   = CRC32_K          ; Koopman
-;                   = CRC32_Q          ; Q
-
 ; Stats:
 ;   Version                    Type              Code Len     Clock cycles (per byte)
 ;   ------------------------   ---------------   ----------   -----------------------
@@ -34,27 +11,10 @@
 ;   CRC32_TABLE_256            256-entry Table   1082 bytes   50
 
 
-CRC32_IEEE    equ $edb88320       ; IEEE 802.3
-CRC32_C       equ $82f63b78       ; Castagnoli
-CRC32_K       equ $eb31d82e       ; Koopman
-CRC32_Q       equ $d5828281       ; Q
-
-CRC32_FORMULAIC equ 0             ; Formulaic version (Space optimization)
-CRC32_FORMULAIC_UNROLLED equ 1    ; Unrolled Formulaic version
-CRC32_TABLE_16  equ 2             ; 16-entry lookup-table
-CRC32_TABLE_32  equ 3             ; 32-entry lookup-table
-CRC32_TABLE_256 equ 4             ; 256-entry lookup-table (Speed optimization)
-
-  IFNDEF CRC32_VERSION
-CRC32_VERSION equ CRC32_FORMULAIC
+; make sure library is called from crc32.asm instead of directly
+  IFNDEF CRC32_ASM_FILE
+  ERROR "Use include crc32.asm"
   ENDC
-
-  IFNDEF CRC32_POLY
-CRC32_POLY equ CRC32_IEEE   ; default to IEEE 802.3
-  ENDC
-
-CRC32_POLY_MSW equ (((CRC32_POLY&$FFFF0000)/$10000)&$FFFF)
-CRC32_POLY_LSW equ (CRC32_POLY&$FFFF)
 
 
 ; LWASM assembler options
