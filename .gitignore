@@ -2,3 +2,6 @@
 
 # ignore file
 a.out
+
+# ignore folders
+/build
