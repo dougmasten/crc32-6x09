@@ -153,8 +153,8 @@ loop@
 ;     i = (crc ^ (data >> 4)) & $0f
 ;     crc = table[i] ^ (crc >> 4)
 loop@
-              stb a@                   ; save Reg B (SMC)              ()
-              eorb ,u                  ;                               ()
+              stb a@                   ; save Reg B (SMC)              (4 cycles)
+              eorb ,u                  ;                               (4 cycles)
               andb #$0f                ;                               (2 cycles)
               ldx #crc32_lookup_table  ;                               (3 cycles)
               lslb                     ; index x4                      (1 cycle)
@@ -184,7 +184,7 @@ a@            equ *-1                  ; ** Self-Modified Code **
               lsrb                     ;                               (1 cycle)
               lsrb                     ;                               (1 cycle)
               lsrb                     ;                               (1 cycle)
-              eorb b@                  ;                               ()
+              eorb b@                  ;                               (4 cycles)
               andb #$0f                ;                               (2 cycles)
               ldx #crc32_lookup_table  ;                               (3 cycles)
               lslb                     ; index x4                      (1 cycle)
