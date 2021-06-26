@@ -1,16 +1,11 @@
-.RECIPEPREFIX +=
 .DEFAULT_GOAL := help
 
 BUILD_DIR := ./build
 TARGET := $(BUILD_DIR)/DISK.DSK
 FILE_BIN := $(BUILD_DIR)/FILE.BIN
-FILE_LIST := $(BUILD_DIR)/file.lst
+FILE_LIST := $(BUILD_DIR)/file.lst.asm
 DISK_FINAL = *.BIN
 
-
-# make sure build directories exist
-$(shell $(MKDIR) $(DISK_DIR))
-$(shell $(MKDIR) $(IMAGE_DIR))
 
 MAME = $(shell which mame)
 DECB = $(shell which decb)
@@ -52,26 +47,26 @@ $(shell $(MKDIR) $(BUILD_DIR))
 
 
 $(FILE_BIN): $(PACKAGE_SRC)
-  $(ASM) -o $(FILE_BIN)       \
+	$(ASM) -o $(FILE_BIN)       \
          --list=$(FILE_LIST)  \
          --symbols            \
          test.asm
 
 
 $(TARGET): $(FILE_BIN)
-  $(RM) $(TARGET)
-  $(DECB) dskini -3 $(TARGET)
-  $(DECB) copy -2 -b $(FILE_BIN) $(TARGET),$(DISK_FINAL)
+	$(RM) $(TARGET)
+	$(DECB) dskini -3 $(TARGET)
+	$(DECB) copy -2 -b $(FILE_BIN) $(TARGET),$(DISK_FINAL)
 
 
 .PHONY: test
 test:
-  $(MAME) $(MAME_MACHINE) -flop1 $(TARGET) $(MAME_OPTIONS)
+	$(MAME) $(MAME_MACHINE) -flop1 $(TARGET) $(MAME_OPTIONS)
 
 
 .PHONY: clean
 clean:
-  $(RMDIR) $(BUILD_DIR)
+	$(RMDIR) $(BUILD_DIR)
 
 
 .PHONY: all
