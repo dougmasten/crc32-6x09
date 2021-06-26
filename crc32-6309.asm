@@ -17,8 +17,6 @@
   ENDC
 
 
-
-
 ;------------------------------------------------------------------------------
 ; Function    : crc32_6309
 ; Input       : Reg U = Pointer to the source data buffer
@@ -81,12 +79,16 @@ crc32_6309_update
               beq crc32_6309_ret       ; if yes, then exit
   ENDC
 
+  IFNDEF CRC32_DISABLE_SAVE_REGS
+              pshs x,y                 ; save registers
+  ENDC
+
+;------------------------------------------------------------------------------
   IFEQ CRC32_VERSION-CRC32_FORMULAIC
 
 ; Formulaic version
-              pshs x,y                 ; save registers
-              ldx #CRC32_POLY_MSW      ; preload reg X with polynomial
-              tfr x,v                  ; and transfer to register V for later use
+              ldx #CRC32_POLY_MSW      ; preload reg V with polynomial
+              tfr x,v                  ;  "       "  "  "    "
 
 loop_a@
               eorb ,u+                 ; xor CRC-32 with byte from buffer     (5 cycles)
@@ -106,9 +108,6 @@ a@
               bne loop_a@              ; loop until done                      (3 cycles)
                                        ;                                      -----------
                                        ;                                TOTAL (200 cycles)
-
-              puls x,y,pc              ; restore registers and exit
-
   ENDC
 
 
@@ -125,8 +124,6 @@ crc32_6309_shift_right MACRO
 a@            equ *                    ;
               ENDM
 
-
-              pshs x,y                 ; save registers
               ldx #CRC32_POLY_MSW      ; preload reg X with polynomial
 
 loop@
@@ -143,9 +140,6 @@ loop@
               bne loop@                ; loop until done                      (3 cycles)
                                        ;                                      -----------
                                        ;                                TOTAL (133 cycles)
-
-              puls x,y,pc              ; restore registers and exit
-
   ENDC
 
 
@@ -158,8 +152,6 @@ loop@
 ;     crc = table[i] ^ (crc >> 4)
 ;     i = (crc ^ (data >> 4)) & $0f
 ;     crc = table[i] ^ (crc >> 4)
-              pshs x,y                 ; save registers
-
 loop@
               stb a@                   ; save Reg B (SMC)              ()
               eorb ,u                  ;                               ()
@@ -221,8 +213,6 @@ b@            equ *-1                  ; ** Self-Modified Code **
                                        ;                               ------------
                                        ;                        TOTAL  (117 cycles)
 ;
-              puls x,y,pc              ; restore registers and exit
-
   ENDC
 
 
@@ -234,8 +224,6 @@ b@            equ *-1                  ; ** Self-Modified Code **
 ;     i = crc ^ data
 ;     crc = table[i & $0f] ^ table[16 + ((i >> 4) & $0f)] ^ (crc >> 8)
 ;     https://lentz.com.au/blog/calculating-crc-with-a-tiny-32-entry-lookup-table
-              pshs x,y                 ; save registers
-
 loop@
 ;
 ; i = crc ^ data
@@ -277,14 +265,11 @@ b@            equ *-1                  ; ** Self-Modified Code **
               ldx ,x                   ;  "   "     "     "     "             (5 cycles)
               eorr x,w                 ;  "   "     "     "     "             (4 cycles)
 ;
-; loop
               leay -1,y                ;                                      (5 cycles)
               bne loop@                ; loop until done                      (3 cycles)
                                        ;                                      ----------
                                        ;                                TOTAL (87 cycles)
 ;
-              puls x,y,pc              ; restore registers and exit
-
   ENDC
 
 
@@ -293,8 +278,6 @@ b@            equ *-1                  ; ** Self-Modified Code **
 
 ; Table-lookup 256-entry version
 ; Algorithm: crc = table[(crc & 0xff) ^ k ] ^ (crc >> 8)
-              pshs x,y                 ; save registers
-
 loop@
 ; i = (crc & 0xff) ^ k
               eorb ,u+                 ; xor CRC32 with source data buffer    (5 cycles)
@@ -320,6 +303,10 @@ loop@
                                        ;                                      -----------
                                        ;                               TOTAL  (50 cycles)
 ;
-              puls x,y,pc              ; restore registers and exit
+  ENDC
 
+  IFNDEF CRC32_DISABLE_SAVE_REGS
+              puls x,y,pc              ; restore registers and exit
+  ELSE
+              rts
   ENDC
