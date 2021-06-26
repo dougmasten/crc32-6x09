@@ -75,8 +75,8 @@ print
 halt    bra halt
 
 
-ok      fcn "OK: CRC-32 CHECKSUM IS CORRECT."
-error   fcn "ERROR: CRC-32 CHECKSUM IS INCORRECT!"
+ok      fcn "CRC-32 CHECKSUM - OK"
+error   fcn "CRC-32 CHECKSUM - ERROR"
 
 
 test_string
