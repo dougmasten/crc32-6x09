@@ -12,9 +12,9 @@
 
 
 ; make sure library is called from crc32.asm instead of directly
-  IFNDEF CRC32_ASM_FILE
-  ERROR "Use include crc32.asm"
-  ENDC
+              ifndef CRC32_ASM_FILE
+              error "Use include crc32.asm"
+              endc
 
 
 ;------------------------------------------------------------------------------
@@ -74,17 +74,17 @@ crc32_6309_ret
 ; Note: CRC-32's MSW and LSW are switched as an speed optimization. They are
 ;       switched back at the end in the "crc32_finalize" routine.
 crc32_6309_update
-  IFNDEF CRC32_DISABLE_LEN_CHECK
+              ifndef CRC32_DISABLE_LEN_CHECK
               leay ,y                  ; test if number of elements is zero
               beq crc32_6309_ret       ; if yes, then exit
-  ENDC
+              endc
 
-  IFNDEF CRC32_DISABLE_SAVE_REGS
+              ifndef CRC32_DISABLE_SAVE_REGS
               pshs x,y                 ; save registers
-  ENDC
+              endc
 
 ;------------------------------------------------------------------------------
-  IFEQ CRC32_VERSION-CRC32_FORMULAIC
+              ifeq CRC32_VERSION-CRC32_FORMULAIC
 
 ; Formulaic version
               ldx #CRC32_POLY_MSW      ; preload reg V with polynomial
@@ -108,21 +108,21 @@ a@
               bne loop_a@              ; loop until done                      (3 cycles)
                                        ;                                      -----------
                                        ;                                TOTAL (200 cycles)
-  ENDC
+              endc
 
 
 ;------------------------------------------------------------------------------
-  IFEQ CRC32_VERSION-CRC32_FORMULAIC_UNROLLED
+              ifeq CRC32_VERSION-CRC32_FORMULAIC_UNROLLED
 
 ; Unrolled Formulaic version
-crc32_6309_shift_right MACRO
+crc32_6309_shift_right macro
               lsrw                     ; shift to the right for bit #0        (2 cycles)
               rord                     ;  "    "   "   "                      (2 cycles)
               bcc a@                   ; branch if no 1's fell off            (3 cycles)
               eorr x,w                 ; xor polynomial                       (4 cycles)
               eord #CRC32_POLY_LSW     ;  "   "                               (4 cycles)
 a@            equ *                    ;
-              ENDM
+              endm
 
               ldx #CRC32_POLY_MSW      ; preload reg X with polynomial
 
@@ -140,11 +140,11 @@ loop@
               bne loop@                ; loop until done                      (3 cycles)
                                        ;                                      -----------
                                        ;                                TOTAL (133 cycles)
-  ENDC
+              endc
 
 
 ;------------------------------------------------------------------------------
-  IFEQ CRC32_VERSION-CRC32_TABLE_16
+              ifeq CRC32_VERSION-CRC32_TABLE_16
 
 ; Table-Lookup 16-entry version
 ; Algorithm:
@@ -213,11 +213,11 @@ b@            equ *-1                  ; ** Self-Modified Code **
                                        ;                               ------------
                                        ;                        TOTAL  (117 cycles)
 ;
-  ENDC
+              endc
 
 
 ;------------------------------------------------------------------------------
-  IFEQ CRC32_VERSION-CRC32_TABLE_32
+              ifeq CRC32_VERSION-CRC32_TABLE_32
 
 ; Table-Lookup 32-entry (2 x 16-entry) version
 ; Algorithm:
@@ -270,11 +270,11 @@ b@            equ *-1                  ; ** Self-Modified Code **
                                        ;                                      ----------
                                        ;                                TOTAL (87 cycles)
 ;
-  ENDC
+              endc
 
 
 ;------------------------------------------------------------------------------
-  IFEQ CRC32_VERSION-CRC32_TABLE_256
+              ifeq CRC32_VERSION-CRC32_TABLE_256
 
 ; Table-lookup 256-entry version
 ; Algorithm: crc = table[(crc & 0xff) ^ k ] ^ (crc >> 8)
@@ -303,10 +303,10 @@ loop@
                                        ;                                      -----------
                                        ;                               TOTAL  (50 cycles)
 ;
-  ENDC
+              endc
 
-  IFNDEF CRC32_DISABLE_SAVE_REGS
+              ifndef CRC32_DISABLE_SAVE_REGS
               puls x,y,pc              ; restore registers and exit
-  ELSE
+              else
               rts
-  ENDC
+              endc
