@@ -19,7 +19,6 @@
 
 ; LWASM assembler options
               opt 6309
-              opt qrts
 
 
 ;------------------------------------------------------------------------------
@@ -62,6 +61,7 @@ crc32_6309_finalize
 ;------------------------------------------------------------------------------
 crc32_6309_init
               ldq #$ffffffff           ; Initial value
+crc32_6309_ret
               rts
 
 
@@ -79,8 +79,7 @@ crc32_6309_init
 ;       switched back at the end in the "crc32_finalize" routine.
 crc32_6309_update
               leay ,y                  ; test if number of elements is zero
-              beq ?rts                 ; if yes, then exit
-
+              beq crc32_6309_ret       ; if yes, then exit
 
   IFEQ CRC32_VERSION-CRC32_FORMULAIC
 
