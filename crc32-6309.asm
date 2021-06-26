@@ -76,8 +76,10 @@ crc32_6309_ret
 ; Note: CRC-32's MSW and LSW are switched as an speed optimization. They are
 ;       switched back at the end in the "crc32_finalize" routine.
 crc32_6309_update
+  IFNDEF CRC32_NO_ZERO_LEN_CHECK
               leay ,y                  ; test if number of elements is zero
               beq crc32_6309_ret       ; if yes, then exit
+  ENDC
 
   IFEQ CRC32_VERSION-CRC32_FORMULAIC
 
