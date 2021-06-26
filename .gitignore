@@ -4,4 +4,4 @@
 a.out
 
 # ignore folders
-/build
+test/build
